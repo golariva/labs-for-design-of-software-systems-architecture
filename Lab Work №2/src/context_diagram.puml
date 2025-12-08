@@ -1,0 +1,21 @@
+@startuml
+
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(employee, "Сотрудник учебного офиса", "Загружает документы, скачанные из Smart LMS и SmartReg")
+Person(new_employee, "Новый сотрудник", "Использует систему для обучения и избежания ошибок")
+Person(manager, "Руководитель учебного офиса", "Контролирует соответствие номенклатуре")
+
+System_Ext(smartlms, "Smart LMS", "Источник документов; сотрудники скачивают файлы вручную")
+System_Ext(smartreg, "SmartReg", "Сотрудники вручную выгружают документы для сохранения")
+
+System(docsys, "Система категоризации документов", "Категоризация, именование и распределение документов по номенклатуре")
+
+Rel(employee, docsys, "Загружает документы, получает отсортированные файлы")
+Rel(new_employee, docsys, "Использует для корректной классификации")
+Rel(manager, docsys, "Настраивает категории, контролирует процесс")
+
+Rel(employee, smartlms, "Выгружает работы студентов вручную")
+Rel(employee, smartreg, "Сохраняет документы вручную")
+
+@enduml

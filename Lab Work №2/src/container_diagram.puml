@@ -1,0 +1,26 @@
+@startuml
+!includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+System_Boundary(c1, "Система категоризации документов") {
+
+    Container(frontend, "Frontend", "React/HTML+JS", "Веб-интерфейс для сотрудников и руководителя")
+    Container(backend, "Backend API", "Python + Django REST", "Обработка файлов, генерация имени, распределение по папкам, поиск по метаданным")
+    Container(ml, "Categorization ML Service", "Python + CatBoost", "Модуль автоматической категоризации документов")
+    Container(database, "Database", "PostgreSQL", "Хранение метаданных, индексов и шаблонов имен")
+    Container(storage, "File Storage (H:)", "File System", "Хранилище документов по номенклатуре")
+}
+
+Person(employee, "Сотрудник учебного офиса", "Загружает документы и работает с системой")
+Person(new_employee, "Новый сотрудник", "Использует систему для обучения")
+Person(manager, "Руководитель учебного офиса", "Контролирует соблюдение номенклатуре")
+
+Rel(employee, frontend, "Использует")
+Rel(new_employee, frontend, "Использует")
+Rel(manager, frontend, "Использует")
+
+Rel(frontend, backend, "Отправляет файлы и команды")
+Rel(backend, ml, "Отправляет документы для категоризации")
+Rel(backend, storage, "Сохраняет и читает документы")
+Rel(backend, database, "Читает и пишет метаданные")
+
+@enduml
