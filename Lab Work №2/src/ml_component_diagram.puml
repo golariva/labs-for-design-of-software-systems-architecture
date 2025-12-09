@@ -1,20 +1,27 @@
 @startuml
 !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-Container(ml, "Categorization ML Service", "Python + CatBoost", "Автоматическая категоризация документов") {
+Container(backend_connector, "Backend API", "Python", "Получает документы от Backend и отправляет категории обратно")
+
+Container_Boundary(ml, "Categorization ML Service", "Python + CatBoost", "Автоматическая категоризация документов") {
 
     Component(preprocessor, "Предобработка текста", "Python", "Извлечение текста из PDF/DOCX и подготовка признаков")
     Component(feature_extractor, "Экстракция признаков", "Python", "Создание признаков из текста и метаданных для модели")
     Component(catboost_model, "Модель CatBoost", "Python + CatBoost", "Обученная модель для классификации документов по категориям")
     Component(postprocessor, "Постобработка результата", "Python", "Проверка предсказаний, формирование окончательного результата")
+    Component(preprocessor_help, "Предобработка текста для обучения", "Python", "Извлечение текста из PDF/DOCX и подготовка тестовых признаков")
+    Component(feature_extractor_help, "Экстракция признаков для обучения", "Python", "Создание признаков из текста и метаданных для обучения модели")
+    Component(catboost_model_help, "Модель CatBoost", "Python + CatBoost", "Обучающаяся модель для классификации документоа по категориям")
+    Component(postprocessor_help, "Постобработка тестовых результатов", "Python", "Проверка предсказаний, формирование окончательного результата")
 }
 
-Component(backend_connector, "Backend Connector", "Python", "Получает документы от Backend и отправляет категории обратно")
-
-backend_connector --> preprocessor
 preprocessor --> feature_extractor
 feature_extractor --> catboost_model
 catboost_model --> postprocessor
-postprocessor --> backend_connector
+backend_connector --> preprocessor
+preprocessor_help --> feature_extractor_help
+feature_extractor_help --> catboost_model_help
+catboost_model_help --> postprocessor_help
+backend_connector --> preprocessor_help
 
 @enduml

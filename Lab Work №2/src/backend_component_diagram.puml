@@ -1,39 +1,28 @@
 @startuml
 !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-Container(backend, "Backend API", "Python + Django REST", "Обработка файлов и бизнес-логика") {
+Container_Boundary(backend, "Backend API", "Python + Django REST", "Обработка файлов и бизнес-логика") {
 
     Component(auth, "Модуль авторизации", "Python + Django Auth", "Проверяет права сотрудников перед доступом к системе")
     Component(file_upload, "Модуль загрузки файлов", "Python", "Принимает файлы от Frontend, проверяет корректность и размер")
     Component(ml_connector, "ML Connector", "Python", "Автоматическая категоризация документов перед генерацией имени")
-    Component(name_generator, "Модуль генерации названий файлов", "Python", "Генерация имени для файлов без стандартизированного названия")
     Component(file_router, "Модуль распределения файлов", "Python", "Распределяет файлы по папкам на диске H: согласно номенклатуре")
-    Component(manual_categorization, "Модуль ручной категоризации", "Python", "Позволяет сотруднику изменить категорию файла после ML")
-    Component(catalog_viewer, "Просмотр доступных каталогов", "Python + Django", "Отображает структуру номенклатуры, индексы и сроки хранения")
+    Component(catalog_viewer, "Получение доступных каталогов", "Python + Django", "Отображает структуру номенклатуры, индексы и сроки хранения")
     Component(search, "Модуль поиска файлов", "Python + Django ORM", "Поиск документов по метаданным: категория, дата, ключевые слова")
     Component(db_connector, "Database Connector", "Python + Django ORM", "Хранение метаданных, индексов, шаблонов имен и истории изменений")
 }
 
-Person(employee, "Сотрудник учебного офиса")
-Person(new_employee, "Новый сотрудник")
-Person(manager, "Руководитель учебного офиса")
+Container(frontend, "Frontend", "React/HTML+JS", "Веб-интерфейс для сотрудников и руководителя")
 
-Rel(employee, auth, "Авторизация и доступ к системе")
-Rel(new_employee, auth, "Авторизация и доступ к системе")
-Rel(manager, auth, "Авторизация и доступ к системе")
-
-Rel(employee, file_upload, "Загружает документы")
-Rel(new_employee, file_upload, "Загружает документы")
-Rel(manager, file_upload, "Настраивает параметры загрузки")
+Rel(frontend, auth, "Авторизация и доступ к системе")
+Rel(frontend, file_upload, "Загружаются документы")
 
 Rel(file_upload, ml_connector, "Отправка файлов для автоматической категоризации")
-Rel(ml_connector, name_generator, "Передача категорий для генерации имени")
-Rel(name_generator, manual_categorization, "Возможность корректировки категории сотрудником")
-Rel(manual_categorization, file_router, "Файлы передаются для размещения по папкам")
+Rel(ml_connector, file_router, "Файлы передаются для размещения по папкам")
 Rel(file_router, db_connector, "Сохранение метаданных и истории изменений")
+Rel(catalog_viewer, db_connector, "Получение списка доступных каталогов из базы данных")
+Rel(auth, db_connector, "Поиск авторизующегося пользователя и проверка его прав доступа")
 Rel(search, db_connector, "Чтение метаданных для поиска")
-Rel(employee, catalog_viewer, "Просмотр структуры номенклатуры")
-Rel(new_employee, catalog_viewer, "Просмотр структуры номенклатуры")
-Rel(manager, catalog_viewer, "Просмотр структуры номенклатуры")
+Rel(frontend, catalog_viewer, "Просмотр структуры номенклатуры")
 
 @enduml
