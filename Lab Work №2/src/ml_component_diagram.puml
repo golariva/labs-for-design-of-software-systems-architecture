@@ -1,27 +1,37 @@
 @startuml
 !includeurl https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-Container(backend_connector, "Backend API", "Python", "Получает документы от Backend и отправляет категории обратно")
+Container(backend_connector, "Backend API", "Python", "Обрабатывает запросы Frontend, принимает документы и передает их в ML-сервис")
 
-Container_Boundary(ml, "Categorization ML Service", "Python + CatBoost", "Автоматическая категоризация документов") {
+Container_Boundary(ml, "Сервис ML-категоризации", "Python + CatBoost", "Автоматическая категоризация документов и обучение модели") {
 
-    Component(preprocessor, "Предобработка текста", "Python", "Извлечение текста из PDF/DOCX и подготовка признаков")
-    Component(feature_extractor, "Экстракция признаков", "Python", "Создание признаков из текста и метаданных для модели")
-    Component(catboost_model, "Модель CatBoost", "Python + CatBoost", "Обученная модель для классификации документов по категориям")
-    Component(postprocessor, "Постобработка результата", "Python", "Проверка предсказаний, формирование окончательного результата")
-    Component(preprocessor_help, "Предобработка текста для обучения", "Python", "Извлечение текста из PDF/DOCX и подготовка тестовых признаков")
-    Component(feature_extractor_help, "Экстракция признаков для обучения", "Python", "Создание признаков из текста и метаданных для обучения модели")
-    Component(catboost_model_help, "Модель CatBoost", "Python + CatBoost", "Обучающаяся модель для классификации документоа по категориям")
-    Component(postprocessor_help, "Постобработка тестовых результатов", "Python", "Проверка предсказаний, формирование окончательного результата")
+    Component(preprocessor_real, "Предобработка текста (реальные данные)", "Python", "Очистка и нормализация текста")
+    Component(feature_extractor_real, "Извлечение признаков (реальные данные)", "Python", "Преобразует текст и метаданные в числовые признаки")
+    Component(classification_real, "Категоризация документов", "Python + CatBoost", "Классификация новых документов")
+    Component(postprocessor_real, "Постобработка результата", "Python", "Корректирует и формирует итоговую категорию")
+
+    Component(preprocessor_train, "Предобработка текста (обучение)", "Python", "Очистка и нормализация текста для обучения")
+    Component(feature_extractor_train, "Извлечение признаков (обучение)", "Python", "Преобразует текст и метаданные в признаки для обучения модели")
+    Component(training_pipeline, "Обучение модели", "Python + CatBoost", "Формирует обучающий датасет и обучает модель")
+    Component(classification_train, "Категоризация обучающих документов", "Python + CatBoost", "Использует обученную модель для проверки и анализа")
+    Component(postprocessor_train, "Постобработка обучения", "Python", "Анализирует результаты обучения и формирует метрики качества")
+
+    Component(results_store, "Получение результатов ML", "Python/Frontend", "Предоставляет пользователю итоговую категорию документа после обработки и обучения модели")
 }
 
-preprocessor --> feature_extractor
-feature_extractor --> catboost_model
-catboost_model --> postprocessor
-backend_connector --> preprocessor
-preprocessor_help --> feature_extractor_help
-feature_extractor_help --> catboost_model_help
-catboost_model_help --> postprocessor_help
-backend_connector --> preprocessor_help
+'Поток категоризации реальных документов
+backend_connector --> preprocessor_real : "Передача новых документов для автоматической категоризации"
+preprocessor_real --> feature_extractor_real : "Очистка текста, удаление стоп-слов, нормализация"
+feature_extractor_real --> classification_real : "Преобразование текста и метаданных в векторы признаков"
+classification_real --> postprocessor_real : "Прогноз категорий, проверка на корректность и согласованность с номенклатурой"
+postprocessor_real --> results_store : "Формирование итоговой категории для отображения пользователю"
+
+'Поток обучения модели
+backend_connector --> preprocessor_train : "Передача документов для обучения модели"
+preprocessor_train --> feature_extractor_train : "Очистка и нормализация текста, подготовка для признаков"
+feature_extractor_train --> training_pipeline : "Создание обучающего набора, формирование признаков и метаданных"
+training_pipeline --> classification_train : "Обучение модели на тренировочных данных и генерация предсказаний для проверки"
+classification_train --> postprocessor_train : "Анализ результатов предсказаний, вычисление метрик точности и качества модели"
+postprocessor_train --> results_store : "Сохранение метрик и результатов обучения для оценки модели и последующей категоризации"
 
 @enduml
